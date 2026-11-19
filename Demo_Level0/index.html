@@ -135,6 +135,14 @@ body {
 #nav-left  { left: 12px;  background-image: url('images/nav-left.png'); }
 #nav-right { right: 12px; background-image: url('images/nav-right.png'); }
 
+/* ==== 视频覆盖层 ==== */
+#video-overlay {
+  position: absolute; top: 0; left: 0; width: 1280px; height: 720px;
+  background: #000; z-index: 600; display: none;
+}
+#video-overlay.show { display: block; }
+#video-player { display: block; width: 100%; height: 100%; object-fit: cover; }
+
 /* ==== NPC 详情窗口（prompt0 要求：点击 NPC4~9 弹出略小于游戏界面的窗口）==== */
 #npc-window-overlay {
   position: absolute; top: 0; left: 0; width: 1280px; height: 720px;
@@ -514,6 +522,11 @@ body.dragging .drag-over-target { filter: brightness(1.3) drop-shadow(0 0 6px cy
 <!-- 游戏容器 -->
 <div id="game-container">
 
+  <!-- 视频覆盖层（双击画面跳过；单击不跳过） -->
+  <div id="video-overlay" ondblclick="skipVideo()">
+    <video id="video-player" playsinline></video>
+  </div>
+
   <!-- 场景区域 -->
   <div id="room-area">
 
@@ -854,7 +867,7 @@ let state = {
   levelEntered: [false,false,false,false,false,false,false,false], // [0]=Level1
   levelExited:  [false,false,false,false,false,false,false,false],
   completionReady: false,     // 集齐 8 个道具返回时置位
-  completionDone: false,      // 通关流程已完成（交通卡已交还）
+  completionDone: false,      // 通关流程已完成（交通卡已交还、00O 已播放）
 };
 
 // ============================================================
@@ -1341,6 +1354,8 @@ function getAudioCtx() {
 }
 function startBgm() {
   if (bgmStarted) return;
+  // 视频播放期间不启动 BGM（进入关卡的那次点击里，onclick 先于 document 监听触发）
+  if (document.getElementById('video-overlay').classList.contains('show')) return;
   bgmStarted = true;
   const bgmEl = document.getElementById('bgm');
   if (bgmEl) { bgmEl.volume = musicVolume * 0.4; bgmEl.play().catch(function () {}); }
@@ -1363,6 +1378,45 @@ function stopBgm() {
   if (bgmNodes) {
     try { bgmNodes.forEach(n => { try { n.stop && n.stop(); } catch (e) {} try { n.disconnect && n.disconnect(); } catch (e) {} }); } catch (e) {}
     bgmNodes = null;
+  }
+}
+
+// ============================================================
+// 视频覆盖层（videos/*.mp4 为正式过场视频；默认等视频自然播放结束后再切换）
+// ============================================================
+let videoOnDone = null;
+let bgmWasPlayingBeforeVideo = false;
+function playVideo(name, onDone) {
+  const overlay = document.getElementById('video-overlay');
+  const v = document.getElementById('video-player');
+  // 记住视频前的 BGM 状态，播放期间静音，播完仍停留在 Level0 时再恢复
+  bgmWasPlayingBeforeVideo = bgmStarted && musicVolume > 0.01;
+  stopBgm();
+  videoOnDone = onDone || null;
+  v.onended = skipVideo;           // 默认等视频自然播放完毕再切换
+  v.onerror = skipVideo;           // 文件缺失/无法解码时兜底，避免卡住流程
+  v.src = 'videos/' + name + '.mp4';
+  overlay.classList.add('show');
+  try { v.currentTime = 0; v.play().catch(function () {}); } catch (e) {}
+}
+function skipVideo() {
+  if (!document.getElementById('video-overlay').classList.contains('show')) return;
+  const v = document.getElementById('video-player');
+  v.onended = null;
+  v.onerror = null;
+  try { v.pause(); } catch (e) {}
+  // 修复：跳转关卡（gotoLevel/gotoHub）前保持黑色遮罩至页面卸载，避免闪现 Level0；
+  // 返回 Level0 场景（afterReturn）由 afterReturn 在显示房间前隐藏遮罩。
+  const cb = videoOnDone;
+  videoOnDone = null;
+  if (cb) cb();
+  // 视频结束且仍停留在 Level0（遮罩已被 afterReturn 收起）→ 恢复 BGM；
+  // 若是跳转关卡/回 Hub，遮罩保持显示且页面即将卸载，不会在这里恢复
+  const resume = bgmWasPlayingBeforeVideo;
+  bgmWasPlayingBeforeVideo = false;
+  if (resume && musicVolume > 0.01 &&
+      !document.getElementById('video-overlay').classList.contains('show')) {
+    startBgm();
   }
 }
 
@@ -1439,11 +1493,14 @@ function tryDropCardOnNpc(npcNum) {
     // 已进入过但尚未切出（边缘：曾在关卡内直接关闭浏览器）→ 直接再进入
     gotoLevel(lvl);
   } else {
-    // 首次切入：记录进入状态后直接跳转
+    // 首次切入：播放 0NI 视频后再跳转
     state.levelEntered[lvl - 1] = true;
     saveSharedState();
-    gotoLevel(lvl);
+    playVideo(videoName(lvl, 'I'), function () { gotoLevel(lvl); });
   }
+}
+function videoName(lvl, type) {
+  return String(lvl).padStart(2, '0') + type; // 1→'01I', 8→'08O'
 }
 function gotoLevel(lvl) {
   window.location.href = '../Demo_Level' + lvl + '/index.html';
@@ -1475,7 +1532,7 @@ function updateCompletionDropTarget() {
   if (state.completionReady && !state.completionDone) el.setAttribute('data-drop-target', 'npc-1');
   else el.removeAttribute('data-drop-target');
 }
-// 把交通卡交还给机器人 → 交通卡离手 → 回标题页
+// 把交通卡交还给机器人 → 交通卡离手 → 播放 00O → 回标题页
 function tryReturnCard() {
   if (!state.completionReady || state.completionDone) return;   // 兜底：没到结尾不接受
   removeItem('transport-card');
@@ -1484,7 +1541,7 @@ function tryReturnCard() {
   updateCompletionDropTarget();
   localStorage.removeItem(STORAGE_PREFIX + 'session');
   playSound('collect');
-  gotoHub();
+  playVideo('00O', function () { gotoHub(); });
 }
 
 // ============================================================
@@ -1695,6 +1752,8 @@ function deleteSelectedSave() {
 // 初始化 / 载入流程
 // ============================================================
 function afterReturn(lvl) {
+  // 0NO 视频播放结束回到 Level0：隐藏视频遮罩（未播放过视频时 remove 无害）
+  document.getElementById('video-overlay').classList.remove('show');
   const npcNum = levelToNpc[lvl];
   let letter = npcToRoom[npcNum];
   if (state.backpack.length >= 8 && !state.completionDone) {
@@ -1713,6 +1772,7 @@ function afterReturn(lvl) {
 
 function bindUI() {
   document.getElementById('dialog-box').addEventListener('click', advanceDialog);
+  document.getElementById('video-player').addEventListener('ended', skipVideo);
   document.getElementById('landscape-hint').addEventListener('click', function (e) {
     if (e.target === e.currentTarget) dismissLandscapeHint();
   });
@@ -1734,12 +1794,14 @@ function initGame() {
     const lvl = parseInt(pending, 10);
     localStorage.removeItem(STORAGE_PREFIX + 'pendingReturn');
     if (!state.levelExited[lvl - 1] && hasLevelItem(lvl)) {
-      // 首次切出且背包已有本关通关道具：记录切出状态后显示 Level0 对应房间
+      // 首次切出且背包已有本关通关道具：先播放 0NO 视频，再出现 Level0 对应房间
       state.levelExited[lvl - 1] = true;
       saveSharedState();
+      playVideo(videoName(lvl, 'O'), function () { afterReturn(lvl); });
+    } else {
+      // 意外返回（未获得通关道具）不播放视频，直接显示对应房间
+      afterReturn(lvl);
     }
-    // 意外返回（未获得通关道具）同样直接显示对应房间
-    afterReturn(lvl);
   } else if (localStorage.getItem(STORAGE_PREFIX + 'hubEntry') === '1') {
     // 从 Hub 入口调度进入：清除一次性标记，进入对应房间
     localStorage.removeItem(STORAGE_PREFIX + 'hubEntry');

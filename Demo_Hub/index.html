@@ -26,15 +26,15 @@ body {
   position: absolute; top: 0; left: 0; width: 1280px; height: 720px;
   background: url('images/title-bg.png') center/cover no-repeat;
   z-index: 500;
-  display: none; flex-direction: column; align-items: center; justify-content: center;
+  /* 两枚按钮排在页面下部、沿中轴对称左右分开：start 在左，存档在右
+     间距 = 原 80px + 半个按钮宽 140px；整组贴到页面最下缘
+     （再往下就会裁掉按钮贴图底部约 7px 的可见画面） */
+  display: none; flex-direction: row; align-items: flex-end; justify-content: center;
+  gap: 220px; padding-bottom: 0;
 }
 #title-screen.show { display: flex; }
-#title-bar {
-  width: 700px; height: 160px; margin-bottom: 80px;
-  background: url('images/title-bar.png') center/contain no-repeat;
-}
 .title-btn {
-  width: 280px; height: 90px; margin: 18px 0;
+  width: 280px; height: 90px; margin: 0;
   background-size: contain; background-repeat: no-repeat; background-position: center;
 }
 #btn-start { background-image: url('images/btn-start.png'); }
@@ -43,6 +43,168 @@ body {
 #btn-saves {
   background-image: url('images/btn-saves.png');
 }
+
+/* ==== 设置按钮 / 设置面板（与各关卡保持一致）==== */
+/* 标题页 z-index 为 500，所以 Hub 的设置按钮/面板比关卡里的 300/400 略高，
+   保证按钮能盖在标题页之上；仍低于视频覆盖层（600）和对话框（700） */
+#settings-btn {
+  position: absolute;
+  top: 12px; right: 12px;
+  width: 42px; height: 42px;
+  background: rgba(0, 0, 0, 0.55);
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-radius: 50%;
+  z-index: 520;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.25s ease;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+#settings-btn:hover {
+  background: rgba(0, 0, 0, 0.75);
+  border-color: rgba(255, 255, 255, 0.6);
+  transform: rotate(30deg);
+}
+#settings-btn svg {
+  width: 24px; height: 24px;
+  fill: rgba(255, 255, 255, 0.85);
+}
+
+#settings-overlay {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  z-index: 560;
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+#settings-overlay.show {
+  display: flex;
+}
+#settings-panel {
+  position: relative;
+  width: 400px;
+  background: rgba(20, 20, 30, 0.92);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 16px;
+  padding: 32px 36px 28px;
+  color: #e0e0e0;
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.6);
+  font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  pointer-events: auto;
+  box-sizing: border-box;
+}
+#settings-panel h3 {
+  text-align: center;
+  margin-bottom: 24px;
+  font-size: 22px;
+  font-weight: 500;
+  letter-spacing: 2px;
+  color: #fff;
+}
+#settings-close-btn {
+  position: absolute;
+  top: 10px; right: 16px;
+  width: 32px; height: 32px;
+  background: none;
+  border: none;
+  color: #999;
+  font-size: 24px;
+  transition: color 0.2s;
+  line-height: 32px;
+  text-align: center;
+  padding: 0;
+}
+#settings-close-btn:hover { color: #fff; }
+.setting-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.vol-icon {
+  width: 22px; height: 22px;
+  opacity: 0.7;
+  flex-shrink: 0;
+}
+.vol-label {
+  width: 56px;
+  text-align: right;
+  font-size: 15px;
+  color: #bbb;
+  flex-shrink: 0;
+}
+.setting-row input[type="range"] {
+  flex: 1;
+  height: 6px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: rgba(255, 255, 255, 0.18);
+  border-radius: 3px;
+  outline: none;
+}
+.setting-row input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  background: #fff;
+  border: 2px solid #888;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  transition: transform 0.15s ease;
+}
+.setting-row input[type="range"]::-webkit-slider-thumb:hover {
+  filter: brightness(1.2);
+}
+.setting-row input[type="range"]::-moz-range-thumb {
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  background: #fff;
+  border: 2px solid #888;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+.setting-row input[type="range"]::-moz-range-thumb:hover {
+  filter: brightness(1.2);
+}
+.vol-value {
+  width: 36px;
+  text-align: center;
+  font-size: 14px;
+  color: #aaa;
+  flex-shrink: 0;
+}
+#settings-link-btn {
+  width: 100%;
+  margin-top: 24px;
+  padding: 12px 0;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 10px;
+  color: #ddd;
+  font-size: 16px;
+  letter-spacing: 1px;
+  text-align: center;
+  transition: all 0.2s ease;
+}
+#settings-link-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.45);
+  color: #fff;
+}
+
+/* ==== 视频覆盖层 ==== */
+#video-overlay {
+  position: absolute; top: 0; left: 0; width: 1280px; height: 720px;
+  background: #000; z-index: 600; display: none;
+}
+#video-overlay.show { display: block; }
+#video-player { display: block; width: 100%; height: 100%; object-fit: cover; }
 
 /* ==== 存档窗口（查看存档；相册式排列）==== */
 #saves-overlay {
@@ -201,9 +363,34 @@ body {
 
   <!-- 标题页 room0 -->
   <div id="title-screen">
-    <div id="title-bar"></div>
     <div id="btn-start" class="title-btn clickable" onclick="startGame()"></div>
     <div id="btn-saves" class="title-btn clickable" onclick="toggleSaves()"></div>
+  </div>
+
+  <!-- 设置按钮（页面右上角：top:12px / right:12px） -->
+  <div id="settings-btn" onclick="toggleSettings()">
+    <svg viewBox="0 0 24 24"><path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.07,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/></svg>
+  </div>
+
+  <!-- 设置面板（音乐 / 音效，写回全部关卡共用的 linkgame_music_vol / linkgame_sfx_vol） -->
+  <div id="settings-overlay" onclick="if(event.target===this)toggleSettings()">
+    <div id="settings-panel" onclick="event.stopPropagation()">
+      <button id="settings-close-btn" onclick="toggleSettings()">&times;</button>
+      <h3>设 置</h3>
+      <div class="setting-row">
+        <svg class="vol-icon" viewBox="0 0 24 24" fill="rgba(255,255,255,0.7)"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
+        <span class="vol-label">音乐</span>
+        <input type="range" id="vol-music" min="0" max="100" value="70" oninput="onMusicVolume(this.value)">
+        <span class="vol-value" id="vol-music-label">70</span>
+      </div>
+      <div class="setting-row">
+        <svg class="vol-icon" viewBox="0 0 24 24" fill="rgba(255,255,255,0.7)"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
+        <span class="vol-label">音效</span>
+        <input type="range" id="vol-sfx" min="0" max="100" value="80" oninput="onSfxVolume(this.value)">
+        <span class="vol-value" id="vol-sfx-label">80</span>
+      </div>
+      <button id="settings-link-btn" onclick="openExternalLink()">查看更多内容 →</button>
+    </div>
   </div>
 
   <!-- 存档窗口（与 Demo_Level0 的存档窗口互读同一份 sessionStorage 数据） -->
@@ -217,6 +404,11 @@ body {
         <button id="saves-del-btn" class="saves-action danger" disabled onclick="deleteSelectedSave()">删 除</button>
       </div>
     </div>
+  </div>
+
+  <!-- 视频覆盖层（双击画面跳过；单击不跳过） -->
+  <div id="video-overlay" ondblclick="skipVideo()">
+    <video id="video-player" playsinline></video>
   </div>
 
   <!-- 简易对话框 -->
@@ -362,6 +554,7 @@ let sfxVolume = 0.8;
 let musicVolume = 0.7;
 let audioCtx = null;
 let bgmStarted = false;
+let bgmNodes = null;
 
 // 占位音频开关：当前 audio/*.mp3 为静音占位，开启后额外用 Web Audio 合成可听音效。
 const PLACEHOLDER_SYNTH = true;
@@ -377,12 +570,27 @@ const PLACEHOLDER_SYNTH = true;
 //   linkgame_music_vol / linkgame_sfx_vol   音量设置（0~100，全部关卡共用）
 const STORAGE_PREFIX = 'linkgame_';
 
-// 读取各关卡里设置的音量：Hub 没有设置键，只读不写
+// 读取各关卡里设置的音量（同一组 linkgame_music_vol / linkgame_sfx_vol 键），
+// 并把数值同步到设置面板的滑杆上
 function loadVolumes() {
   const mv = localStorage.getItem(STORAGE_PREFIX + 'music_vol');
   const sv = localStorage.getItem(STORAGE_PREFIX + 'sfx_vol');
-  if (mv !== null) musicVolume = parseInt(mv) / 100;
-  if (sv !== null) sfxVolume = parseInt(sv) / 100;
+  const m = parseInt(mv), s = parseInt(sv);
+  if (mv !== null && !isNaN(m)) musicVolume = m / 100;
+  if (sv !== null && !isNaN(s)) sfxVolume = s / 100;
+  syncVolumeUI();
+}
+function syncVolumeUI() {
+  const mVal = String(Math.round(musicVolume * 100));
+  const sVal = String(Math.round(sfxVolume * 100));
+  const m = document.getElementById('vol-music');
+  const ml = document.getElementById('vol-music-label');
+  const s = document.getElementById('vol-sfx');
+  const sl = document.getElementById('vol-sfx-label');
+  if (m) m.value = mVal;
+  if (ml) ml.textContent = mVal;
+  if (s) s.value = sVal;
+  if (sl) sl.textContent = sVal;
 }
 
 // ============================================================
@@ -438,6 +646,33 @@ function confirmNo() {
 }
 
 // ============================================================
+// 视频覆盖层
+// ============================================================
+let videoOnDone = null;
+function playVideo(name, onDone) {
+  const overlay = document.getElementById('video-overlay');
+  const v = document.getElementById('video-player');
+  stopBgm();                       // 视频播放期间不播 BGM
+  videoOnDone = onDone || null;
+  v.onended = skipVideo;           // 默认等视频自然播放完毕再切换
+  v.onerror = skipVideo;           // 文件缺失/无法解码时兜底，避免卡住流程
+  v.src = 'videos/' + name + '.mp4';
+  overlay.classList.add('show');
+  try { v.currentTime = 0; v.play().catch(function () {}); } catch (e) {}
+}
+function skipVideo() {
+  if (!document.getElementById('video-overlay').classList.contains('show')) return;
+  const v = document.getElementById('video-player');
+  v.onended = null;
+  v.onerror = null;
+  try { v.pause(); } catch (e) {}
+  document.getElementById('video-overlay').classList.remove('show');
+  const cb = videoOnDone;
+  videoOnDone = null;
+  if (cb) cb();
+}
+
+// ============================================================
 // 音频 API（精简：仅 click 音效 + BGM）
 // ============================================================
 function playSound(type) {
@@ -472,11 +707,33 @@ function getAudioCtx() {
 }
 function startBgm() {
   if (bgmStarted) return;
+  // 视频播放期间不启动 BGM（开始游戏的点击里，onclick 先于 document 监听触发）
+  if (document.getElementById('video-overlay').classList.contains('show')) return;
   bgmStarted = true;
   const bgmEl = document.getElementById('bgm');
-  if (bgmEl) { bgmEl.volume = musicVolume * 0.4; bgmEl.play().catch(function () {}); }
+  if (bgmEl) {
+    bgmEl.volume = musicVolume * 0.4;
+    try {
+      const p = bgmEl.play();
+      // 浏览器自动播放策略：没有用户手势时，未静音的 play() 会被拒绝。
+      // 这时撤销"已启动"标记并清掉刚建立的合成音，等用户第一次交互后重试。
+      if (p && typeof p.catch === 'function') {
+        p.catch(function () {
+          bgmStarted = false;
+          stopBgmSynth();
+        });
+      }
+    } catch (e) {
+      bgmStarted = false;
+      stopBgmSynth();
+    }
+  }
   try {
     const ctx = getAudioCtx();
+    // 无用户手势时 AudioContext 处于 suspended：先尝试恢复，恢复不了就等首次交互
+    if (ctx && ctx.state === 'suspended' && typeof ctx.resume === 'function') {
+      try { ctx.resume(); } catch (e) {}
+    }
     const g = ctx.createGain();
     g.gain.value = musicVolume * 0.04;
     g.connect(ctx.destination);
@@ -484,8 +741,57 @@ function startBgm() {
     const o2 = ctx.createOscillator(); o2.frequency.value = 55.5; o2.type = 'sine';
     o1.connect(g); o2.connect(g);
     o1.start(); o2.start();
+    bgmNodes = [g, o1, o2];
   } catch (e) {}
 }
+// 只停 Web Audio 合成音（保留 bgmStarted 状态判断交给调用方）
+function stopBgmSynth() {
+  if (!bgmNodes) return;
+  try { bgmNodes.forEach(n => { try { n.stop && n.stop(); } catch (e) {} try { n.disconnect && n.disconnect(); } catch (e) {} }); } catch (e) {}
+  bgmNodes = null;
+}
+// 视频播放期间暂停 BGM（audio 元素 + Web Audio 合成音一起停）
+function stopBgm() {
+  bgmStarted = false;
+  const bgmEl = document.getElementById('bgm');
+  if (bgmEl) bgmEl.pause();
+  stopBgmSynth();
+}
+// ============================================================
+// 设置面板（与各关卡同一套视觉与交互；音量写回全关卡共用的存储键）
+// ============================================================
+function toggleSettings() {
+  const overlay = document.getElementById('settings-overlay');
+  if (!overlay) return;
+  overlay.classList.toggle('show');
+  if (overlay.classList.contains('show')) {
+    syncVolumeUI();
+    playSound('click');
+  }
+}
+function onMusicVolume(value) {
+  musicVolume = value / 100;
+  const label = document.getElementById('vol-music-label');
+  if (label) label.textContent = value;
+  // Hub 的 BGM 按 musicVolume * 0.4 播放（见 startBgm），正在播放时同步音量
+  const bgmEl = document.getElementById('bgm');
+  if (bgmEl) bgmEl.volume = musicVolume * 0.4;
+  try {
+    if (bgmNodes && bgmNodes[0] && bgmNodes[0].gain) bgmNodes[0].gain.value = musicVolume * 0.04;
+  } catch (e) {}
+  localStorage.setItem(STORAGE_PREFIX + 'music_vol', value);
+}
+function onSfxVolume(value) {
+  sfxVolume = value / 100;
+  const label = document.getElementById('vol-sfx-label');
+  if (label) label.textContent = value;
+  localStorage.setItem(STORAGE_PREFIX + 'sfx_vol', value);
+}
+function openExternalLink() {
+  playSound('click');
+  window.open('https://link-project.super.site/', '_blank');
+}
+
 // ============================================================
 // 标题页 room0 / 开始游玩 / 查看存档
 // ============================================================
@@ -499,10 +805,12 @@ function hideTitle() {
 function startGame() {
   resetProgress();
   hideTitle();
-  localStorage.setItem(STORAGE_PREFIX + 'room', 'A');
-  localStorage.setItem(STORAGE_PREFIX + 'session', '1');
-  localStorage.setItem(STORAGE_PREFIX + 'hubEntry', '1');
-  window.location.href = '../Demo_Level0/index.html';
+  playVideo('00I', function () {
+    localStorage.setItem(STORAGE_PREFIX + 'room', 'A');
+    localStorage.setItem(STORAGE_PREFIX + 'session', '1');
+    localStorage.setItem(STORAGE_PREFIX + 'hubEntry', '1');
+    window.location.href = '../Demo_Level0/index.html';
+  });
 }
 // ============================================================
 // 存档窗口（查看存档）
@@ -642,15 +950,37 @@ function deleteSelectedSave() {
 // ============================================================
 // 初始化：入口窗口每次打开都显示标题页，永不恢复进度
 // ============================================================
-function initGame() {
-  loadVolumes();   // 跟随各关卡里设置的音量
-  showTitle();
-  // 首交互启动 BGM
-  const startBgmOnInteract = () => {
+// 浏览器自动播放策略：网页刚打开、用户还没操作过时，未静音的 BGM 会被拦截
+// （AudioContext 也处于 suspended）。先立即尝试一次，被拦下时等用户第一次
+// 点击/按键再启动——这是浏览器允许的最早时机，代码无法绕过。
+let bgmGestureBound = false;
+function bindBgmGestureFallback() {
+  if (bgmGestureBound) return;
+  bgmGestureBound = true;
+  // 只监听 click / keydown：click 是按钮内联 onclick 之后才冒泡到 document 的，
+  // 所以点「开始游戏」时 playVideo 已先显示遮罩，startBgm 的遮罩守卫会拦住，
+  // 不会在过场视频开始前闪出一小段 BGM。移动端轻触同样会派发 click。
+  const events = ['click', 'keydown'];
+  const onGesture = function () {
+    try {
+      if (audioCtx && audioCtx.state === 'suspended' && typeof audioCtx.resume === 'function') audioCtx.resume();
+    } catch (e) {}
     if (musicVolume > 0.01) startBgm();
-    document.removeEventListener('click', startBgmOnInteract);
+    // 真正启动成功后才解绑；若仍被拦截（例如正播视频）就继续等下一次交互
+    if (bgmStarted) {
+      events.forEach(function (t) { document.removeEventListener(t, onGesture); });
+    }
   };
-  document.addEventListener('click', startBgmOnInteract);
+  events.forEach(function (t) { document.addEventListener(t, onGesture); });
+}
+
+function initGame() {
+  loadVolumes();   // 跟随各关卡里设置的音量，并同步设置面板滑杆
+  showTitle();
+  // 打开页面就先尝试自动播放 BGM（允许自动播放的环境会立即出声）
+  if (musicVolume > 0.01) startBgm();
+  // 被浏览器拦下时，用户第一次交互后补上
+  bindBgmGestureFallback();
   console.log('🎮 林克游戏 — 标题页 / 重置进度 / 调度 Level0~8');
 }
 window.addEventListener('DOMContentLoaded', initGame);
